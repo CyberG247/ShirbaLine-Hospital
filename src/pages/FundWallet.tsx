@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Wallet, CreditCard, Smartphone, Building2, ArrowLeft, CheckCircle } from "lucide-react";
+import { Wallet, CreditCard, Smartphone, Building2, ArrowLeft, CheckCircle, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,27 +15,182 @@ const paymentMethods = [
 
 const quickAmounts = [1000, 2500, 5000, 10000, 15000, 25000];
 
+const hospitalDetails = {
+  name: "Specialized Hospital Benin",
+  address: "No. 123, Ring Road, GRA, Benin City, Edo State",
+  phone: "+234 805 123 4567",
+  email: "info@shbenin.com",
+  website: "www.shbenin.com",
+  rcNumber: "RC 123456"
+};
+
 const FundWallet = () => {
   const [amount, setAmount] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("card");
   const [showSuccess, setShowSuccess] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [transactionId, setTransactionId] = useState("");
 
   const handleFunding = async () => {
     if (!amount || parseFloat(amount) < 100) return;
     
     setProcessing(true);
+    // Generate transaction ID
+    const newTransactionId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    
     // Simulate payment processing
     setTimeout(() => {
       setProcessing(false);
+      setTransactionId(newTransactionId);
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 3000);
+      setTimeout(() => setShowSuccess(false), 5000);
     }, 2000);
   };
 
   const formatAmount = (value: string) => {
     const num = parseFloat(value);
     return isNaN(num) ? "₦ 0" : `₦ ${num.toLocaleString()}`;
+  };
+
+  const printReceipt = () => {
+    const receiptWindow = window.open('', '_blank');
+    const currentDate = new Date().toLocaleString();
+    
+    receiptWindow?.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Payment Receipt - ${hospitalDetails.name}</title>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              margin: 20px; 
+              line-height: 1.6;
+              color: #333;
+            }
+            .header { 
+              text-align: center; 
+              border-bottom: 2px solid #2563eb; 
+              padding-bottom: 20px; 
+              margin-bottom: 30px;
+            }
+            .logo { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #2563eb; 
+              margin-bottom: 10px;
+            }
+            .hospital-info { 
+              font-size: 14px; 
+              color: #666; 
+            }
+            .receipt-title { 
+              font-size: 20px; 
+              font-weight: bold; 
+              text-align: center; 
+              margin: 30px 0; 
+              color: #2563eb;
+            }
+            .details-grid { 
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 20px; 
+              margin-bottom: 30px;
+            }
+            .detail-item { 
+              border-bottom: 1px dotted #ccc; 
+              padding: 8px 0; 
+            }
+            .label { 
+              font-weight: bold; 
+              color: #555;
+            }
+            .amount-section { 
+              background: #f8f9fa; 
+              padding: 20px; 
+              border-radius: 8px; 
+              text-align: center; 
+              margin: 30px 0;
+            }
+            .amount { 
+              font-size: 24px; 
+              font-weight: bold; 
+              color: #16a34a;
+            }
+            .footer { 
+              text-align: center; 
+              margin-top: 40px; 
+              padding-top: 20px; 
+              border-top: 1px solid #ccc; 
+              font-size: 12px; 
+              color: #666;
+            }
+            .status { 
+              color: #16a34a; 
+              font-weight: bold;
+            }
+            @media print {
+              body { margin: 0; }
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="logo">${hospitalDetails.name}</div>
+            <div class="hospital-info">
+              ${hospitalDetails.address}<br>
+              Phone: ${hospitalDetails.phone} | Email: ${hospitalDetails.email}<br>
+              Website: ${hospitalDetails.website} | RC: ${hospitalDetails.rcNumber}
+            </div>
+          </div>
+          
+          <div class="receipt-title">WALLET FUNDING RECEIPT</div>
+          
+          <div class="details-grid">
+            <div class="detail-item">
+              <div class="label">Patient Name:</div>
+              <div>Jane Doe</div>
+            </div>
+            <div class="detail-item">
+              <div class="label">Patient ID:</div>
+              <div>SHB0011059</div>
+            </div>
+            <div class="detail-item">
+              <div class="label">Transaction ID:</div>
+              <div>${transactionId}</div>
+            </div>
+            <div class="detail-item">
+              <div class="label">Date & Time:</div>
+              <div>${currentDate}</div>
+            </div>
+            <div class="detail-item">
+              <div class="label">Payment Method:</div>
+              <div>${paymentMethods.find(m => m.id === selectedMethod)?.name}</div>
+            </div>
+            <div class="detail-item">
+              <div class="label">Status:</div>
+              <div class="status">SUCCESSFUL</div>
+            </div>
+          </div>
+          
+          <div class="amount-section">
+            <div style="margin-bottom: 10px;">Amount Funded</div>
+            <div class="amount">${formatAmount(amount)}</div>
+          </div>
+          
+          <div class="footer">
+            <p><strong>Thank you for using ${hospitalDetails.name}</strong></p>
+            <p>This is a computer-generated receipt. No signature required.</p>
+            <p>For inquiries, please contact us at ${hospitalDetails.phone} or ${hospitalDetails.email}</p>
+            <p>Generated on: ${currentDate}</p>
+          </div>
+        </body>
+      </html>
+    `);
+    
+    receiptWindow?.document.close();
+    receiptWindow?.print();
   };
 
   if (showSuccess) {
@@ -48,9 +202,17 @@ const FundWallet = () => {
             <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-primary-dark mb-2">Payment Successful!</h2>
             <p className="text-gray-600 mb-4">Your wallet has been funded with {formatAmount(amount)}</p>
-            <Link to="/portal">
-              <Button className="w-full">Return to Portal</Button>
-            </Link>
+            <p className="text-sm text-gray-500 mb-6">Transaction ID: {transactionId}</p>
+            
+            <div className="space-y-3">
+              <Button onClick={printReceipt} variant="outline" className="w-full">
+                <Printer size={16} className="mr-2" />
+                Print Payment Receipt
+              </Button>
+              <Link to="/portal">
+                <Button className="w-full">Return to Portal</Button>
+              </Link>
+            </div>
           </Card>
         </main>
         <Footer />
